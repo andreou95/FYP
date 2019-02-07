@@ -29,6 +29,23 @@ def load_words():
 
 	return(word1,word2)
 
+def valid_words(word1,word2):
+	myflag="False"
+	dict=english_words
+
+	for count in dict:
+		if word1  != count:
+			a=word1
+		else:
+			myflag="True"
+		if word2 != count:
+			b=word2
+		else:
+			myflag = "True" 
+	return myflag
+
+
+
 if __name__ == '__main__':
     english_words = load_english_dictionary()
     a=english_words
@@ -36,3 +53,4 @@ if __name__ == '__main__':
     b=distance
     word1,word2 = load_words()
     print(word1,word2)
+    print (valid_words(word1,word2))
