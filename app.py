@@ -2,11 +2,12 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output,Input
+import plotly.plotly as plt
 import pandas as pd
 import plotly.graph_objs as go
 import io
 import math
-import matplotlib.pyplot as plt
+
 import numpy as np
 from numpy import dot
 from numpy.linalg import norm
@@ -67,40 +68,16 @@ def load_words(obj):
     return xco,yco
 
 def convToFloat(x_axis):
-    x1 =np.float32(x_axis)
+    x1 = np.float32(x_axis)
     return x1
 
 
 
 
-def plotattempt(x_axis,y_axis):
-    x1= np.float32(x_axis)
-    y1 = np.float32(y_axis)
-    z=np.arange(0,100)
-    z1=np.float32(z)
-    # print(z1)
-    # print(x1,y1)
-    average1 = np.average(x1)
-    average2 = np.average(y1)
-    # plt.scatter(z1, x1,c='green')
-    # plt.scatter(z1, y1,c='red')
-    # plt.title("Similarity")
-    # plt.xlabel('nananan')
-    # plt.xlim(-0.1,0.1)
-    # plt.ylim(-0.1,0.1)
-    # plt.text(average1,average1,"word1")
-    # plt.text(average2, average2, "word2")
-    # print(average1,average2)
-    # plt.figure()
-    # plt.plot(average1)
-    # plt.plot(average2)
-    #
-    # plt.show()
-    return x1
 
 
 def k_nearestangle(k):
-    count=k
+    count = k
     dict_obj1 = my_dictionary()
     for i,j in dict_obj.items():
         value=angle(j,k1)
@@ -113,9 +90,9 @@ def k_nearestdistance(k):
     dict_obj1 = my_dictionary()
 
     for i,j in dict_obj.items():
-        value=euclidean(j,k1)
-        dict_obj1.add(i,value)
-    sortedDict= sorted(dict_obj1.items(), key=lambda x: x[1] , reverse=False)# This returns the list of key-value pairs in the dictionary, sorted by value from  lowest to highest
+        value = euclidean(j, k1)
+        dict_obj1.add(i, value)
+    sortedDict = sorted(dict_obj1.items(), key=lambda x: x[1], reverse=False)# This returns the list of key-value pairs in the dictionary, sorted by value from  lowest to highest
 
     return sortedDict[1:count+1]
 
@@ -124,12 +101,9 @@ def k_nearestdistance(k):
 
 
 def euclidean(x_axis,y_axis):
-    a=np.float32(x_axis)
-    b=np.float32(y_axis)
-    # print(a,b)
-
-    dst=math.sqrt(sum([(x-y)**2 for x,y in zip(a,b)]))
-    # print(dst)
+    a = np.float32(x_axis)
+    b = np.float32(y_axis)
+    dst = math.sqrt(sum([(x-y)**2 for x, y in zip(a, b)]))
     return dst
 
 def angle(x_axis,y_axis):
@@ -178,38 +152,27 @@ k1, k2 = load_words(dict_obj)
 
 app.layout = html.Div([
 html.Div([
-    html.H1("Words 2 Vec",style={'backgroundColor': '#FDEBD0'}),
+    html.H1("Words 2 Vec",style={'backgroundColor': '#FDEBD0',
+                                 'border':'0px'}),
     html.Label('First Word'),
     dcc.Input(id='input-1', value='', type='text',spellCheck='False'),#we set this to true so it doesnt spell check for now
     html.Label('Second Word'),
     dcc.Input(id='input-2', type='text'),
-    html.Div(id='input-div'),
-    html.Button('submit',id='submit-button',style={'display': 'inline-block'})
-    # ,    dcc.Graph(
-    #     id='word embeddings',
-    #     figure={
-    #         'data': [
-    #             go.Scatter(
-    #                 x=convToFloat(k1),
-    #                 y=convToFloat1(k2),
-    #                 mode='markers',
-    #                 opacity=0.8,
-    #                 marker={
-    #                     'size': 15,
-    #                     'line': {'width': 0.5, 'color': 'white'}
-    #                 },
-    #
-    #             )
-    #         ],
-    #         'layout': go.Layout(
-    #
-    #             yaxis={'title': 'Words'},
-    #             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-    #
-    #             hovermode='closest'
-    #         )
-    #     }
-    # )
+    html.Div(id='input-div',),
+    html.Button('submit',id='submit-button',style={'display': 'inline-block'}),
+    html.Div([dcc.Dropdown(
+        id='my-dropdown',
+        options=[
+            {'label': 'Euclidean', 'value': 'euclidean'},
+            {'label': 'Cosine', 'value': 'cosine'}
+        ],
+        searchable=False,
+        placeholder='Select Distance function to be used',
+        value='euclidean',
+
+    )]),html.Div([
+    dcc.Graph(id='my-graph')
+], style={'width': '500','display': 'none'})
 ])])
 
 @app.callback(Output('input-div', 'children'),
@@ -224,7 +187,7 @@ def update_output(input1, input2):
 def search_button(input1,input2):
     w1 = dict_obj.get(input1)
     w2 = dict_obj.get(input2)
-    z = np.arange(0, 100)
+    z = np.arange(0,len(w1))
     # if w1 is None:
     #     if w2 is None:
     #         print("ERROR")
@@ -234,21 +197,24 @@ def search_button(input1,input2):
         figure={
             'data': [
                 go.Scatter(
-                    x=convToFloat(w1),
-                    y=convToFloat(z),
-                    mode='markers',
+                    x=np.mean(convToFloat(w1)),
+                    y=np.mean(convToFloat(z)),
+                    mode='markers + text',
                     opacity=0.8,
+                    name='Word 1',
                     marker={
+                        'maxdisplayed': 90,
                         'size': 15,
                         'line': {'width': 0.5, 'color': 'white'}
                     },
 
                 )
     ,go.Scatter(
-                    x1=convToFloat(w2),
-                    y1=convToFloat(z),
+                    x1=np.mean(convToFloat(w2)),
+                    y1=np.mean(convToFloat(z)),
                     mode='markers',
                     opacity=0.8,
+                    name='Word 2',
                     marker={
                         'size': 15,
                         'line': {'width': 0.5, 'color': 'blue'}
@@ -257,14 +223,33 @@ def search_button(input1,input2):
                 )
             ],
             'layout': go.Layout(
-                showlegend=False,
-                xaxis=dict(zeroline=False),
-                yaxis=dict(hoverformat='2.f'),
+                yaxis={'title': 'Life Expectancy'},
                 margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-                hovermode='closest'
+                legend={'x':0,'y':1},
+                hovermode='closest',
+
             )
         }
     )])])
+@app.callback(Output('my-graph', 'figure'), [Input('my-dropdown', 'value')])
+def update_graph(selected_dropdown_value):
+
+    if selected_dropdown_value!= None:
+        if selected_dropdown_value == 'euclidean':
+            df = k_nearestdistance(10)
+        else:
+            df = k_nearestangle(10)
+
+
+    return html.H3( {df})
+
+        #     'data': [{
+        #         'x': df.keys(),
+        #         'y': df.Close
+        #     }],
+        #     'layout': {'margin': {'l': 40, 'r': 0, 't': 20, 'b': 30}}
+        #
+
 
 
 
