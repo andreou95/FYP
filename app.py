@@ -21,6 +21,8 @@ from numpy.linalg import norm
 # talk about pretrained methods used by glove
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.config['suppress_callback_exceptions']= True
 
 # def generate_table(dataframe, max_rows):
 #     return html.Table(
@@ -70,23 +72,24 @@ def convToFloat(x_axis):
     x1 = np.float32(x_axis)
     return x1
 
-def k_nearestangle(k):
+def k_nearestangle(input,k):
     count = k
     dict_obj1 = my_dictionary()
     for i,j in dict_obj.items():
-        value=angle(j,k1)
-        dict_obj1.add(i,value)
+        value=angle(j,dict_obj.get(input))
+        dict_obj1.add(i,round(value,4))
     sortedDict=(sorted(dict_obj1.items(), key=lambda x: x[1], reverse=True))# This returns the list of key-value pairs in the dictionary, sorted by value from highest to lowest
     return sortedDict[1:count]
 
-def k_nearestdistance(k):
+def k_nearestdistance(input,k):
+
     count = k
     dict_obj1 = my_dictionary()
 
     for i,j in dict_obj.items():
-        value = euclidean(j, k1)
+        value = round(euclidean(j, dict_obj.get(input)),4)
         dict_obj1.add(i, value)
-    sortedDict = sorted(dict_obj1.items(), key=lambda x: round(x[1],2), reverse=False)# This returns the list of key-value pairs in the dictionary, sorted by value from  lowest to highest
+    sortedDict = sorted(dict_obj1.items(), key=lambda x: x[1], reverse=False)# This returns the list of key-value pairs in the dictionary, sorted by value from  lowest to highest
 
     return sortedDict[1:count+1]
 
@@ -101,6 +104,9 @@ def angle(x_axis,y_axis):
     b=np.float32(y_axis)
     cos_sin = dot(a, b)/(norm(a)*norm(b))
     return cos_sin
+
+
+
 
 class my_dictionary(dict):
 
@@ -119,14 +125,7 @@ dict_obj = getdictionary()
 
 k1, k2 = load_words(dict_obj)
 
-df=pd.DataFrame(k_nearestdistance(10),columns={'Words','Distance'})
-
-
-
-
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-
-app.layout = html.Div([
+app.layout = html.Div([html.Div([
 
         html.Div(
             [
@@ -152,164 +151,215 @@ app.layout = html.Div([
 
         html.Div(
                 [
-                    dcc.Tabs(id='tabs',children=[
-                        dcc.Tab(label='Compare Words',children=[
-                            html.P('Insert First Word'),
-                            dcc.Input(id='compare-input-box1', type='text', placeholder='Enter word', value='him'),
-                            html.P('Insert Second Word'),
-                            dcc.Input(id='compare-input-box2',type='text',placeholder='Enter Word',value='her'),
-                            html.Br(),
-                            html.Button('Update graph',id='Compare=button')
-                    ]),
+                    dcc.Tabs(id='tabs',value='tab-1',children=[
+                        dcc.Tab(label='Compare Words',value='tab-1')
 
-                        dcc.Tab(label='Closest neighbours', children=[
-                        html.P('Insert word to calculate closest neighbours'),
-                        dcc.Input(id='input-box',type='text',placeholder='Enter word',value='him'),
-                        html.P('Choose method for calculating distance:'),
+                    ,
 
+                        dcc.Tab(label='Closest neighbours',value='tab-2')
 
-                        dcc.RadioItems(
-                                id = 'distance',
-                                options=[
-                                    {'label': 'Euclidean', 'value': 'euclidean'},
-                                    {'label': 'Cosine', 'value': 'cosine'}
-                                ],
-                                value=['euclidean'],
-                                labelStyle={'display': 'inline-block'}
-                        ),html.P('Choose number of neighbours')
-                            ,dcc.Slider(
-                                        id='my-slider',
-                                        min=0,
-                                        max=10,
-                                        step=1,
-                                        marks={i:'no: {}'.format(i) for i in range(10)},
-                                        value=10,
-                                    ),html.Br(),
 
 
                     ],
-                    className='six columns',
-                    style={'margin-top': '10'}
-                )
-                ], colors={
-                "border" : "white",
-                "primary" : "gold",
-                "background" : "cornsilk"
-            })
+                    className='row',
+                    style={'margin-top': '10'},
+                    colors={
+                        "border" : "white",
+                        "primary" : "gold",
+                        "background" : "cornsilk"
+                    }
+                ),html.Div(id='tabs-hidden')
+                ])
 
             ], className="row"
         ),
 
 
 
-        html.Div([
-        html.Div([
+    html.Div([
+        html.Div(id='hidden-graph-div',style={'display':'none'},children=[html.Div(id='hidden-graph',children=[dcc.Graph(id='example-graph')])
+
+    ], className='six columns')
+            ,html.Div(id='hidden-table-div',style={'display' : 'none'},children=[
+             html.Br()
+            ,html.Div(id='hidden-table',children=[])], className= 'six columns')
 
 
-                dcc.Graph(id='example-graph')
-                ], className='six columns'
-                )
-                ,html.Div([
-                html.Br(),
-                    dash_table.DataTable(
-                    id='table',
-                    columns=[{"name": i, "id": i} for i in df.columns],
-                    data=df.to_dict("rows"),
-                    style_cell={'width': '80px'},
-                )
-                ], className= 'six columns'
-                )
-            ], className="row"
+        ], className="row"
         )
-    ], className='twelve columns')
+], className='twelve columns')
+
+
+
+
+
+
+
+
+@app.callback(Output('tabs-hidden', 'children'),
+    [Input('tabs', 'value')])
+def update_tabs(t1):
+    if t1== 'tab-1':
+        return html.Div([ html.P('Insert First Word'),
+                            dcc.Input(id='compare-input-box1', type='text', placeholder='Enter word', value='him'),
+                            html.P('Insert Second Word'),
+                            dcc.Input(id='compare-input-box2',type='text',placeholder='Enter Word',value='her'),
+                            html.Br(),
+                            html.Button('Update graph',id='compare-button',n_clicks=0)
+                      ],className='row')
+
+    else:
+        return html.Div([html.P('Insert word to calculate closest neighbours'),
+                        dcc.Input(id='closest-input-box',type='text',placeholder='Enter word',value='him'),
+                        html.P('Choose method for calculating distance:'),
+
+
+                        dcc.RadioItems(
+                                id = 'distance',
+                                options=[
+                                    {'label': 'Euclidean', 'value': 'Euclidean'},
+                                    {'label': 'Cosine', 'value': 'Cosine'}
+                                ],
+
+                                labelStyle={'display': 'inline-block'}
+                        ),html.P('Choose number of neighbours')
+                            ,dcc.Slider(
+                                        id='my-slider',
+                                        min=0,
+                                        max=10,
+
+                                        step=1,
+                                        marks={i:'=>{}'.format(i) for i in range(10)},
+                                        value=3,
+                                    ),html.Br(),
+                        ],className='row')
+
 
 @app.callback(
     Output('example-graph', 'figure'),
     [Input('compare-input-box1', 'value'),
-     Input('compare-input-box2', 'value')])
-def update_image_src(selector1, selector2):
-    data = []
-    # if 'euclidean' in selector:
-    #     data.append({'x': [1, 2, 3], 'y': [4, 1, 2], 'mode': 'markers', 'name': 'SF'})
-    # if 'cosine' in selector:
-    #     data.append({'x': [1, 2, 3], 'y': [2, 4, 5], 'mode': 'markers', 'name': u'Montréal'})
+     Input('compare-input-box2', 'value'),
+     Input('compare-button','n_clicks')])
+def update_image_src(selector1, selector2,n):
+    
+    trace=[]
+
     w1 = dict_obj.get(selector1)
     w2 = dict_obj.get(selector2)
     w3 = np.arange(0, 100)
 
+    if n!=0:
+        # Create a trace
+        trace.append( go.Scatter(
+            x=convToFloat(w1),
+            y=convToFloat(w3),
+            mode='markers',
+            name=selector1))
 
-    # Create a trace
-    trace1 = go.Scatter(
-        x=convToFloat(w1),
-        y=convToFloat(w3),
-        mode='markers+text')
+        # Create a trace2
+        trace.append(go.Scatter(
+            x=convToFloat(w2),
+            y=convToFloat(w3),
+            mode='markers',
+            name=selector2))
 
-    # Create a trace2
-    trace2 = go.Scatter(
-        x=convToFloat(w2),
-        y=convToFloat(w3),
-        mode='markers+text')
-
-    data.append(trace1)
-    data.append(trace2)
+        # trace.append(go.Scatter(
+        #     x=convToFloat(dict_obj.get('president')),
+        #     y=convToFloat(w3),
+        #     mode='markers',
+        #     name='president'))
 
 
-    figure = {
-        'data': data,
-        'layout': {
-            'title':selector1 +' vs '+selector2 ,
-            'showlegend' : True,
-            'xaxis' : dict(
-                visible=False,
-                titlefont=dict(
-                family='Courier New, monospace',
-                size=20,
-                color='#7f7f7f'
-            )),
-            'yaxis' : dict(
 
-                titlefont=dict(
-                family='Helvetica, monospace',
-                size=20,
-                color='#7f7f7f'
-            ))
+
+        data = trace
+
+
+
+        figure = {
+            'data': data,
+            'layout': {
+                'title':selector1 +' vs '+selector2 ,
+                'showlegend' : True,
+                'xaxis' : dict(
+                    # visible=False,
+                    titlefont=dict(
+                    family='Courier New, monospace',
+                    size=20,
+                    color='#7f7f7f'
+                )),
+                'yaxis' : dict(
+
+                    titlefont=dict(
+                    family='Helvetica, monospace',
+                    size=20,
+                    color='#7f7f7f'
+                ))
+            }
         }
-    }
     return figure
 
-# @app.callback(Output('table-container', 'children')
-#     , [Input('my-slider', 'value')])
-# def update_table(value):
-#     dff = eucli_dic# update with your own logic
-#     return generate_table(dff,value)
-# def generate_table(dataframe, max_rows):
-#     return html.Table(
-#         # Header
-#         [html.Tr([html.Th(col) for col in dataframe.columns])] +
-#
-#         # Body
-#         [html.Tr([
-#             html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-#         ]) for i in range(min(len(dataframe), max_rows))]
-#     )
-#
-# @app.callback(
-#     Output('hidden-form', 'style'),
-#     [Input('toggle', 'value')])
-# def toggle_closest(toggle_value):
-#     if toggle_value == 'Closest neighbours':
-#         return {'display': 'block'}
-#     else:
-#         return{'display':'none'}
-# @app.callback(
-#     Output('hidden-graph', 'style'),
-#     [Input('toggle', 'value')])
-# def toggle_compare(toggle_value):
-#     if toggle_value == 'Compare Words':
-#         return {'display': 'none'}
-#     else:
-#         return{'display':'block'}
 
+
+
+
+@app.callback(
+    Output('hidden-table-div', 'style'),
+    [Input('tabs', 'value')])
+def table_div_style(toggle_value):
+    if toggle_value == 'tab-2':
+
+        return {'display': 'block'}
+    else:
+        return {'display': 'none'}
+
+
+
+
+
+@app.callback(
+    Output('hidden-table', 'children'),
+    [Input('closest-input-box','value')
+        ,Input('my-slider','value')
+        ,Input('distance','value')])
+def table_style(in_value ,slider_value,distance_value):
+    df=create_table_df(in_value,slider_value, distance_value)
+    return  dash_table.DataTable(
+                    id='table',
+                    columns=[{"name": i, "id": i} for i in df.columns],
+                    data=df.to_dict("rows"),
+                    style_cell={'width': '80px'})
+
+def create_table_df(in_value,n, flag):
+    if flag == 'Euclidean':
+        df = pd.DataFrame(k_nearestdistance(in_value,n), columns={ flag + ' Distance','Words'})
+
+    else:
+        df = pd.DataFrame(k_nearestangle(in_value,n), columns={ flag + ' Angle','Words'})
+    return df
+
+@app.callback(
+        Output('hidden-graph-div', 'style'),
+        [Input('tabs', 'value')])
+def graph_div_style(tab_value):
+    if tab_value == 'tab-2':
+        return {'display': 'none'}
+
+    else:
+        return {'display': 'block'}
+
+# @app.callback(
+#     Output('hidden-graph', 'children'),
+#     [
+#      Input('distance','value'),
+#      Input('my-slider','value'),
+#     Input('closest-input-box','value')
+#      ])
+# def graph_style(distance_value,slider_value,in_value):
+#     create_closest_graph()
+#     return figure
+# def create_closest_graph():
+#         return  dcc.Graph(id='example-graph2')
 
 # @app.callback(
 #     Output('table', 'children'),
