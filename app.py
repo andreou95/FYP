@@ -24,16 +24,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.config['suppress_callback_exceptions']= True
 
-# def generate_table(dataframe, max_rows):
-#     return html.Table(
-#         # Header
-#         [html.Tr([html.Th(col) for col in dataframe.columns])] +
-#
-#         # Body
-#         [html.Tr([
-#             html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-#         ]) for i in range(min(len(dataframe), max_rows))]
-#     )
+
 
 def getdictionary():
 
@@ -47,26 +38,7 @@ def getdictionary():
 
     return dict_obj
 
-def load_words(obj):
 
-    # word1 = input('Please insert word: ')
-    # word2 = input('Please insert word: ')
-    word1='him'
-    word2='her'
-
-    if obj.get(word1)!= obj.get(word2):
-        if obj.get(word1) != None:
-            xco = obj.get(word1)
-
-        if obj.get(word2) != None:
-            yco= obj.get(word2)
-    else:
-        print("words are the same")
-
-
-
-
-    return xco,yco
 
 def convToFloat(x_axis):
     x1 = np.float32(x_axis)
@@ -123,7 +95,6 @@ class my_dictionary(dict):
 dict_obj = my_dictionary()
 dict_obj = getdictionary()
 
-k1, k2 = load_words(dict_obj)
 
 app.layout = html.Div([html.Div([
 
