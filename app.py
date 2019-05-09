@@ -215,16 +215,10 @@ def update_tabs(t1):
      Input('compare-input-box2', 'value'),
      Input('compare-button','n_clicks')])
 def update_image_src(selector1, selector2,n):
-    
     trace=[]
-
     w1 = dict_obj.get(selector1)
     w2 = dict_obj.get(selector2)
     w3 = np.arange(0, 100)
-
-
-
-
     if n!=0:
         # Create a trace
         trace.append( go.Scatter(
@@ -241,13 +235,7 @@ def update_image_src(selector1, selector2,n):
             name=selector2))
 
 
-
-
-
-
         data = trace
-
-
 
         figure = {
             'data': data,
