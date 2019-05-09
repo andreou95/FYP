@@ -2,23 +2,15 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Output,Input
-import plotly.plotly as plt
 import pandas as pd
-import plotly.figure_factory as ff
 import plotly.graph_objs as go
 import io
 import math
 import dash_table
-
 import numpy as np
 from numpy import dot
 from numpy.linalg import norm
 
-#give a number k nearest (progress bar to choose number of neighbours
-#tie both display in case of a tie
-#rasio buttons anfle and distance calculated re apearing word input buttons
-#create requirements.txt file run with pip install -r requirements.txt
-# talk about pretrained methods used by glove
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -171,7 +163,12 @@ app.layout = html.Div([html.Div([
     [Input('tabs', 'value')])
 def update_tabs(t1):
     if t1== 'tab-1':
-        return html.Div([ html.P('Insert First Word'),
+        return html.Div([   html.Br(),
+                            html.P('Instructions: In the section Compare Words The user is asked to insert 2 words to be compared and visualised in a plot'),
+                            html.P('The plot will visualise the representation of the two word embeddingsas vectors of numbers.'),
+                            html.P('Once the update graph button is clicked the values of these word embeddings are displayed'),
+                            html.Br(),
+                            html.P('Insert First Word'),
                             dcc.Input(id='compare-input-box1', type='text', placeholder='Enter word', value='him'),
                             html.P('Insert Second Word'),
                             dcc.Input(id='compare-input-box2',type='text',placeholder='Enter Word',value='her'),
@@ -180,30 +177,36 @@ def update_tabs(t1):
                       ],className='row')
 
     else:
-        return html.Div([html.P('Insert word to calculate closest neighbours'),
-                        dcc.Input(id='closest-input-box',type='text',placeholder='Enter word',value='him'),
-                        html.P('Choose method for calculating distance:'),
+        return html.Div([   html.Br(),
+                            html.P('Instructions: In the section Closest neighbours The user is asked to insert a word he wishes'),
+                            html.P('Step 1 choose the method of calculating the distance/angle from the radio buttons'),
+                            html.P('Step 2 choose from the slider component the number of neighbouring words to be displayed'),
+                            html.P('As a result the most similar words in the pre trained word embeddings file will be displayed in a table visualisation'),
+                            html.Br(),
+                            html.P('Insert word to calculate closest neighbours'),
+                            dcc.Input(id='closest-input-box',type='text',placeholder='Enter word',value='him'),
+                            html.P('Choose method for calculating distance:'),
 
 
-                        dcc.RadioItems(
-                                id = 'distance',
-                                options=[
-                                    {'label': 'Euclidean', 'value': 'Euclidean'},
-                                    {'label': 'Cosine', 'value': 'Cosine'}
-                                ],
+                            dcc.RadioItems(
+                                    id = 'distance',
+                                    options=[
+                                        {'label': 'Euclidean Distance', 'value': 'Euclidean'},
+                                        {'label': 'Cosine Angle', 'value': 'Cosine'}
+                                    ],
 
-                                labelStyle={'display': 'inline-block'}
-                        ),html.P('Choose number of neighbours')
-                            ,dcc.Slider(
-                                        id='my-slider',
-                                        min=0,
-                                        max=10,
+                                    labelStyle={'display': 'inline-block'}
+                            ),html.P('Choose number of nearest neighbours')
+                                ,dcc.Slider(
+                                            id='my-slider',
+                                            min=0,
+                                            max=50,
 
-                                        step=1,
-                                        marks={i:'=>{}'.format(i) for i in range(10)},
-                                        value=3,
-                                    ),html.Br(),
-                        ],className='row')
+                                            step=1,
+                                            # marks={i:'=>{}'.format(i) for i in range(10)},
+                                            value=15,
+                                        ),html.Br(),
+                            ],className='row')
 
 
 @app.callback(
@@ -218,6 +221,9 @@ def update_image_src(selector1, selector2,n):
     w1 = dict_obj.get(selector1)
     w2 = dict_obj.get(selector2)
     w3 = np.arange(0, 100)
+
+
+
 
     if n!=0:
         # Create a trace
@@ -234,11 +240,7 @@ def update_image_src(selector1, selector2,n):
             mode='markers',
             name=selector2))
 
-        # trace.append(go.Scatter(
-        #     x=convToFloat(dict_obj.get('president')),
-        #     y=convToFloat(w3),
-        #     mode='markers',
-        #     name='president'))
+
 
 
 
@@ -319,34 +321,7 @@ def graph_div_style(tab_value):
     else:
         return {'display': 'block'}
 
-# @app.callback(
-#     Output('hidden-graph', 'children'),
-#     [
-#      Input('distance','value'),
-#      Input('my-slider','value'),
-#     Input('closest-input-box','value')
-#      ])
-# def graph_style(distance_value,slider_value,in_value):
-#     create_closest_graph()
-#     return figure
-# def create_closest_graph():
-#         return  dcc.Graph(id='example-graph2')
 
-# @app.callback(
-#     Output('table', 'children'),
-#     [Input('distance', 'value')])
-# def update_image_src(selector):
-#
-#     if 'euclidean' in selector:
-#         # data.append({'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'markers', 'name': 'SF'})
-#         table = ff.create_table(k_nearestdistance(10))
-#     if 'cosine' in selector:
-#         # data.append({'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'markers', 'name': u'Montréal'})
-#         table=ff.create_table(k_nearestangle(10))
-#
-#
-#
-#     return table
 
 if __name__ == '__main__':
     app.run_server(debug=True)
