@@ -26,8 +26,7 @@ def getdictionary():
             dict_obj.key=words[0]
             dict_obj.value = words[1:]
             dict_obj.add(dict_obj.key, dict_obj.value)
-            # print(dict_obj)
-
+          
     return dict_obj
 
 
