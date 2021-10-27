@@ -45,7 +45,7 @@ dash-daq==0.1.0
 dash-html-components==0.14.0
 dash-renderer==0.20.0
 dash-table==3.1.11
-dask==0.15.3
+dask==2021.10.0
 datashape==0.5.4
 decorator==4.1.2
 distlib==0.2.5
